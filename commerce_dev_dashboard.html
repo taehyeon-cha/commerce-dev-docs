@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>커머스개발팀 시트 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0a0a0a;
+  --paper: #f4f1ea;
+  --paper-2: #ebe6db;
+  --accent: #e63946;
+  --accent-2: #f4a261;
+  --green: #2a9d8f;
+  --gray: #8c8478;
+  --line: #c9c0b0;
+  --part-front: #264653;
+  --part-order: #e63946;
+  --part-product: #f4a261;
+  --part-settle: #2a9d8f;
+  --part-common: #6a4c93;
+  --display: 'Fraunces', serif;
+  --body: 'IBM Plex Sans KR', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  line-height: 1.5;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(230,57,70,0.04) 0, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(38,70,83,0.05) 0, transparent 40%);
+}
+.wrap { max-width: 1480px; margin: 0 auto; padding: 40px 32px 80px; }
+
+header { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; padding-bottom: 24px; margin-bottom: 28px; border-bottom: 1px solid var(--ink); }
+.brand { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray); margin-bottom: 10px; }
+h1 { font-family: var(--display); font-weight: 900; font-size: clamp(36px, 5vw, 64px); line-height: 0.95; letter-spacing: -0.03em; }
+h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+.meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; text-align: right; color: var(--gray); }
+.meta strong { color: var(--ink); display: block; font-size: 13px; }
+
+.setup-panel { border: 2px solid var(--ink); background: var(--paper); padding: 22px 26px; margin-bottom: 24px; }
+.setup-panel.collapsed { padding: 12px 26px; }
+.setup-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.setup-panel.collapsed .setup-header { margin-bottom: 0; }
+.setup-panel.collapsed .setup-body { display: none; }
+.setup-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.setup-status { font-family: var(--mono); font-size: 11px; color: var(--gray); }
+.setup-status .connected { color: var(--green); font-weight: 700; }
+.setup-toggle { margin-left: auto; font-family: var(--mono); font-size: 10px; padding: 4px 10px; border: 1px solid var(--ink); background: transparent; cursor: pointer; }
+.setup-toggle:hover { background: var(--ink); color: var(--paper); }
+.setup-body { display: flex; flex-direction: column; gap: 12px; }
+.url-row { display: flex; gap: 8px; align-items: stretch; }
+.url-input { flex: 1; font-family: var(--mono); font-size: 12px; padding: 8px 12px; border: 1px solid var(--ink); background: var(--paper-2); }
+.url-input:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.btn-primary { font-family: var(--mono); font-size: 11px; padding: 8px 18px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+.btn-primary:disabled { background: var(--gray); border-color: var(--gray); cursor: wait; }
+.setup-help { font-size: 12px; color: var(--gray); line-height: 1.6; }
+.setup-help code { background: var(--paper-2); padding: 1px 6px; font-family: var(--mono); font-size: 11px; }
+.setup-help strong { color: var(--ink); }
+
+.sheet-bar { border: 2px solid var(--ink); background: var(--ink); color: var(--paper); padding: 16px 24px; margin-bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.sheet-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-2); }
+.sheet-select { font-family: var(--mono); font-size: 12px; padding: 7px 12px; background: var(--paper); color: var(--ink); border: 1px solid var(--paper); cursor: pointer; min-width: 260px; }
+.btn-refresh { font-family: var(--mono); font-size: 10px; padding: 6px 12px; background: transparent; color: var(--paper); border: 1px solid var(--paper); cursor: pointer; letter-spacing: 0.05em; }
+.btn-refresh:hover { background: var(--paper); color: var(--ink); }
+.sheet-meta { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--gray); }
+.sheet-meta strong { color: var(--accent-2); }
+
+.notice { padding: 20px 24px; font-family: var(--mono); font-size: 13px; margin-bottom: 24px; border-left: 4px solid; }
+.notice.loading { background: var(--paper-2); border-color: var(--accent-2); color: var(--ink); }
+.notice.error { background: rgba(230,57,70,0.08); border-color: var(--accent); color: var(--ink); }
+.notice.empty { background: var(--paper-2); border-color: var(--gray); color: var(--gray); }
+.notice code { background: var(--paper); padding: 1px 6px; font-size: 12px; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); margin-bottom: 32px; border: 1px solid var(--ink); }
+.kpi { padding: 20px; border-right: 1px solid var(--ink); }
+.kpi:last-child { border-right: none; }
+.kpi-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
+.kpi-value { font-family: var(--display); font-weight: 700; font-size: 42px; line-height: 1; letter-spacing: -0.02em; }
+.kpi-sub { font-size: 11px; color: var(--gray); margin-top: 6px; font-family: var(--mono); }
+
+.filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; align-items: center; }
+.filter-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray); margin-right: 8px; }
+.chip { font-family: var(--mono); font-size: 11px; padding: 6px 12px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; letter-spacing: 0.05em; transition: all 0.15s ease; text-transform: uppercase; }
+.chip:hover { background: var(--ink); color: var(--paper); }
+.chip.active { background: var(--ink); color: var(--paper); }
+.chip[data-part="프론트"].active { background: var(--part-front); border-color: var(--part-front); }
+.chip[data-part="주문/결제"].active { background: var(--part-order); border-color: var(--part-order); }
+.chip[data-part="상품/혜택"].active { background: var(--part-product); border-color: var(--part-product); color: var(--ink); }
+.chip[data-part="정산"].active { background: var(--part-settle); border-color: var(--part-settle); }
+.chip[data-part="공통"].active { background: var(--part-common); border-color: var(--part-common); }
+
+section { margin-bottom: 48px; }
+.section-title { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.section-num { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.15em; }
+.section-title h2 { font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; }
+.section-title .desc { margin-left: auto; font-size: 12px; color: var(--gray); font-style: italic; }
+
+.parts-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.part-card { background: var(--paper); border: 1px solid var(--ink); padding: 18px 16px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.18s ease; }
+.part-card:hover { transform: translateY(-3px); }
+.part-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--part-color, var(--ink)); }
+.part-card[data-part="프론트"] { --part-color: var(--part-front); }
+.part-card[data-part="주문/결제"] { --part-color: var(--part-order); }
+.part-card[data-part="상품/혜택"] { --part-color: var(--part-product); }
+.part-card[data-part="정산"] { --part-color: var(--part-settle); }
+.part-card[data-part="공통"] { --part-color: var(--part-common); }
+.part-name { font-family: var(--display); font-weight: 700; font-size: 20px; margin: 6px 0 2px; }
+.part-name em { font-style: italic; color: var(--part-color, var(--ink)); }
+.part-count { font-family: var(--mono); font-size: 10px; color: var(--gray); letter-spacing: 0.08em; margin-bottom: 14px; }
+.part-bars { display: flex; flex-direction: column; gap: 5px; }
+.part-bar { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 8px; }
+.part-bar-label { font-family: var(--mono); font-size: 10px; color: var(--gray); }
+.part-bar-track { height: 4px; background: var(--paper-2); position: relative; }
+.part-bar-fill { position: absolute; top: 0; left: 0; bottom: 0; background: var(--part-color, var(--ink)); opacity: 0.85; transition: width 0.3s ease; }
+.part-bar-num { font-family: var(--mono); font-size: 10px; font-weight: 700; min-width: 12px; text-align: right; }
+.part-developers { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 10px; color: var(--gray); font-family: var(--mono); line-height: 1.5; }
+
+.flow-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--ink); background: var(--paper); }
+.flow-col { border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+.flow-col:last-child { border-right: none; }
+.flow-head { padding: 12px 14px; border-bottom: 1px solid var(--ink); display: flex; justify-content: space-between; align-items: baseline; background: var(--paper-2); }
+.flow-head .name { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; }
+.flow-head .num { font-family: var(--display); font-size: 20px; font-weight: 700; }
+.flow-body { padding: 10px 8px; display: flex; flex-direction: column; gap: 5px; max-height: 500px; overflow-y: auto; }
+.flow-card { padding: 7px 9px; background: var(--paper); border-left: 3px solid var(--part-color, var(--ink)); font-size: 11px; line-height: 1.35; position: relative; transition: transform 0.1s ease; }
+.flow-card:hover { transform: translateX(2px); background: var(--paper-2); }
+.flow-card[data-part="프론트"] { --part-color: var(--part-front); }
+.flow-card[data-part="주문/결제"] { --part-color: var(--part-order); }
+.flow-card[data-part="상품/혜택"] { --part-color: var(--part-product); }
+.flow-card[data-part="정산"] { --part-color: var(--part-settle); }
+.flow-card[data-part="공통"] { --part-color: var(--part-common); }
+.fc-title { font-weight: 500; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.fc-meta { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: var(--gray); letter-spacing: 0.03em; }
+.fc-key { color: var(--accent); font-weight: 700; }
+.fc-key a { color: var(--accent); text-decoration: none; }
+.fc-key a:hover { text-decoration: underline; }
+
+.matrix-wrap { border: 1px solid var(--ink); overflow-x: auto; }
+.matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
+.matrix th, .matrix td { padding: 12px 10px; text-align: center; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.matrix th { background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+.matrix th:first-child { background: var(--paper-2); color: var(--ink); text-align: left; padding-left: 16px; }
+.matrix td:first-child { text-align: left; padding-left: 16px; font-family: var(--display); font-weight: 500; font-size: 13px; background: var(--paper-2); }
+.matrix td.cell { font-family: var(--mono); font-weight: 700; font-size: 13px; position: relative; }
+.matrix td.cell .heat { position: absolute; inset: 4px; background: var(--accent); opacity: 0; z-index: 0; }
+.matrix td.cell span { position: relative; z-index: 1; }
+.matrix tr.total td { background: var(--ink); color: var(--paper); font-weight: 700; }
+
+.raw-wrap { border: 1px solid var(--ink); overflow-x: auto; max-height: 600px; overflow-y: auto; }
+.raw-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.raw-table th, .raw-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); white-space: nowrap; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+.raw-table th { background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; position: sticky; top: 0; }
+.raw-table td { font-family: var(--mono); font-size: 10px; }
+.raw-table tr:hover td { background: var(--paper-2); }
+
+footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray); }
+
+@media (max-width: 1100px) {
+  .parts-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .kpi { border-bottom: 1px solid var(--ink); }
+  .flow-grid { grid-template-columns: 1fr; }
+  .flow-col { border-right: none; border-bottom: 1px solid var(--line); }
+  h1 { font-size: 36px; }
+}
+.part-card.dimmed { opacity: 0.35; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="brand">Commerce Dev Team · Live Sheet Lens</div>
+    <h1>시트에서 바로<br>읽는 <em>과제 현황</em></h1>
+  </div>
+  <div class="meta">
+    <strong id="metaSheet">— 시트 선택 대기</strong>
+    SOURCE: 커머스개발팀 과제현황<br>
+    매번 최신 시트 목록 조회
+  </div>
+</header>
+
+<div class="setup-panel" id="setupPanel">
+  <div class="setup-header">
+    <span class="setup-title">⚙ Apps Script URL 설정</span>
+    <span class="setup-status" id="setupStatus">미연결</span>
+    <button class="setup-toggle" id="setupToggle">접기</button>
+  </div>
+  <div class="setup-body">
+    <div class="setup-help">
+      이 대시보드는 <strong>Google Apps Script로 배포된 웹 앱 URL</strong>을 통해 시트를 읽습니다.
+      최초 1회만 설정하면 URL이 브라우저에 저장되어 다음부턴 자동 연결됩니다.<br>
+      함께 받은 <code>apps_script_code.gs</code> 파일의 주석에 배포 방법이 안내돼 있습니다.
+    </div>
+    <div class="url-row">
+      <input type="text" class="url-input" id="urlInput" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+      <button class="btn-primary" id="connectBtn">연결</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-bar hidden" id="sheetBar">
+  <span class="sheet-label">📑 시트 탭</span>
+  <select class="sheet-select" id="sheetSelect"></select>
+  <button class="btn-refresh" id="refreshBtn">🔄 탭 목록 새로고침</button>
+  <span class="sheet-meta" id="sheetMeta"></span>
+</div>
+
+<div id="notice"></div>
+<div id="autoContent"></div>
+
+<footer>
+  <span>커머스개발팀 / Live Sheet</span>
+  <span>대시보드 v3 · Apps Script 연동</span>
+</footer>
+
+</div>
+
+<script>
+(function() {
+const STORAGE_KEY = 'commerceDashboardApiUrl';
+const PARTS = ['프론트', '주문/결제', '상품/혜택', '정산', '공통'];
+const STATUS_GROUPS = {
+  '대기': ['대기 중', '백로그', 'Back log', '대기', 'Backlog'],
+  '기획/PRD': ['기획 중', '기획 완료/리뷰 예정', 'PRD 작성', '상세기획중', '상세기획완료', '보관됨'],
+  '개발 중': ['개발 중', '개발중', '개발검토', '리뷰 중'],
+  'QA': ['QA 중', 'QA'],
+  '완료': ['완료됨', '머지됨', '운영 중', '개발완료', '완료']
+};
+
+const state = {
+  apiUrl: '',
+  sheets: [],
+  currentSheet: null,
+  data: null,
+  selectedPart: 'all'
+};
+
+function groupOf(status) {
+  if (!status) return '기타';
+  for (const [g, list] of Object.entries(STATUS_GROUPS)) {
+    if (list.includes(status)) return g;
+  }
+  return '기타';
+}
+function normalizePart(s) {
+  if (!s) return '미지정';
+  s = String(s);
+  if (s.includes('프론트')) return '프론트';
+  if (s.includes('주문') || s.includes('결제')) return '주문/결제';
+  if (s.includes('상품') || s.includes('혜택')) return '상품/혜택';
+  if (s.includes('정산')) return '정산';
+  if (s.includes('공통')) return '공통';
+  return '기타';
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function setNotice(html, type = 'loading') {
+  const el = document.getElementById('notice');
+  if (!html) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="notice ' + type + '">' + html + '</div>';
+}
+
+async function callApi(action, extraParams = {}) {
+  const url = new URL(state.apiUrl);
+  url.searchParams.set('action', action);
+  for (const [k, v] of Object.entries(extraParams)) {
+    url.searchParams.set(k, v);
+  }
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'API 오류');
+  return json;
+}
+
+async function connectAndLoadList() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) {
+    setNotice('URL을 입력해주세요', 'error');
+    return;
+  }
+  state.apiUrl = url;
+  localStorage.setItem(STORAGE_KEY, url);
+  setNotice('시트 목록 가져오는 중...', 'loading');
+  document.getElementById('connectBtn').disabled = true;
+  try {
+    const result = await callApi('list');
+    state.sheets = result.sheets;
+    document.getElementById('setupStatus').innerHTML = '<span class="connected">● 연결됨</span>';
+    document.getElementById('setupPanel').classList.add('collapsed');
+    document.getElementById('setupToggle').textContent = '펴기';
+    document.getElementById('sheetBar').classList.remove('hidden');
+    renderSheetSelect();
+    setNotice('');
+    if (state.sheets.length > 0) {
+      await loadSheet(state.sheets[0].name);
+    }
+  } catch (err) {
+    setNotice('연결 실패: ' + escapeHtml(err.message) + '<br>URL이 올바른지, 웹 앱 액세스 권한이 "모든 사용자"로 설정됐는지 확인해주세요.', 'error');
+    document.getElementById('setupStatus').textContent = '미연결';
+  } finally {
+    document.getElementById('connectBtn').disabled = false;
+  }
+}
+
+function renderSheetSelect() {
+  const sel = document.getElementById('sheetSelect');
+  sel.innerHTML = state.sheets.map(s =>
+    '<option value="' + escapeHtml(s.name) + '">' + escapeHtml(s.name) + ' (' + s.rows + '행)</option>'
+  ).join('');
+  document.getElementById('sheetMeta').innerHTML = '총 <strong>' + state.sheets.length + '</strong>개 탭';
+}
+
+async function loadSheet(name) {
+  setNotice('<strong>' + escapeHtml(name) + '</strong> 시트 불러오는 중...', 'loading');
+  state.currentSheet = name;
+  document.getElementById('sheetSelect').value = name;
+  document.getElementById('metaSheet').textContent = name;
+  try {
+    const result = await callApi('data', { sheet: name });
+    state.data = parseSheetData(result.rows);
+    setNotice('');
+    state.selectedPart = 'all';
+    renderAll();
+  } catch (err) {
+    setNotice('데이터 로드 실패: ' + escapeHtml(err.message), 'error');
+    state.data = null;
+    document.getElementById('autoContent').innerHTML = '';
+  }
+}
+
+function parseSheetData(rows) {
+  if (!rows || rows.length === 0) return null;
+  let headerRowIdx = -1;
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    const row = rows[i].map(c => String(c || '').trim());
+    if (row.includes('Key') || row.includes('Summary') || row.includes('과제(jira)')) {
+      headerRowIdx = i;
+      break;
+    }
+  }
+  if (headerRowIdx === -1) headerRowIdx = 0;
+  const headers = rows[headerRowIdx].map(c => String(c || '').trim());
+  const items = [];
+  for (let i = headerRowIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.every(c => !c || String(c).trim() === '')) continue;
+    const item = {};
+    headers.forEach((h, j) => {
+      if (h) item[h] = row[j] !== undefined ? row[j] : '';
+    });
+    if (!Object.values(item).some(v => v)) continue;
+    items.push(item);
+  }
+  return { headers, items };
+}
+
+function toEpics(data) {
+  if (!data) return [];
+  if (data.headers.includes('Key')) {
+    return data.items
+      .filter(r => r['Key'])
+      .map(r => ({
+        key: String(r['Key'] || '').trim(),
+        url: r['URL'] || '',
+        summary: r['Summary'] || '',
+        status: r['Status'] || '',
+        priority: r['Priority'] || '',
+        issuetype: r['Issuetype'] || '',
+        assignee: r['Assignee'] || '',
+        duedate: r['Duedate'] || '',
+        developers: r['Developers'] || '',
+        developParts: r['DevelopParts'] || '',
+        partNorm: normalizePart(r['DevelopParts'])
+      }));
+  }
+  return [];
+}
+
+function renderAll() {
+  const content = document.getElementById('autoContent');
+  if (!state.data) { content.innerHTML = ''; return; }
+  const epics = toEpics(state.data);
+  if (epics.length > 0) {
+    content.innerHTML = renderJiraView(epics);
+    bindJiraInteractions();
+  } else {
+    content.innerHTML = renderRawView(state.data);
+  }
+}
+
+function renderJiraView(allEpics) {
+  const epics = state.selectedPart === 'all' ? allEpics : allEpics.filter(e => e.partNorm === state.selectedPart);
+  const inProgress = epics.filter(e => ['개발 중', '리뷰 중'].includes(e.status)).length;
+  const qa = epics.filter(e => e.status === 'QA 중').length;
+  const waiting = epics.filter(e => ['대기 중', '백로그', 'Back log'].includes(e.status)).length;
+  const done = epics.filter(e => ['완료됨', '머지됨', '운영 중'].includes(e.status)).length;
+  const kpis = [
+    { label: '에픽', value: epics.length, sub: 'Jira 단위' },
+    { label: '개발 중', value: inProgress, sub: '진행 중' },
+    { label: 'QA', value: qa, sub: '검증 중' },
+    { label: '대기', value: waiting, sub: '시작 안 함' },
+    { label: '완료', value: done, sub: '머지·운영' }
+  ];
+
+  let html = '<div class="kpi-row">' +
+    kpis.map(k => '<div class="kpi"><div class="kpi-label">' + k.label + '</div><div class="kpi-value">' + k.value + '</div><div class="kpi-sub">' + k.sub + '</div></div>').join('') +
+    '</div>';
+
+  html += '<div class="filter-bar"><span class="filter-label">FILTER · PART</span>' +
+    '<button class="chip ' + (state.selectedPart === 'all' ? 'active' : '') + '" data-part="all">전체</button>' +
+    PARTS.map(p => '<button class="chip ' + (state.selectedPart === p ? 'active' : '') + '" data-part="' + p + '">' + p + '</button>').join('') +
+    '</div>';
+
+  html += '<section><div class="section-title"><span class="section-num">01</span><h2>파트별 부하와 분포</h2><span class="desc">— Jira 에픽 기준 · 카드 클릭하여 필터</span></div>' +
+    '<div class="parts-grid">' + renderPartsCards(allEpics) + '</div></section>';
+
+  html += '<section><div class="section-title"><span class="section-num">02</span><h2>에픽 진행 흐름</h2><span class="desc">— 상태별 분포</span></div>' +
+    '<div class="flow-grid">' + renderFlow(epics) + '</div></section>';
+
+  html += '<section><div class="section-title"><span class="section-num">03</span><h2>우선순위 × 파트</h2><span class="desc">— priority별 파트 분포</span></div>' +
+    '<div class="matrix-wrap">' + renderMatrix(allEpics) + '</div></section>';
+
+  return html;
+}
+
+function renderPartsCards(allEpics) {
+  return PARTS.map(part => {
+    const epics = allEpics.filter(e => e.partNorm === part);
+    const statusCounts = {};
+    ['대기', '기획/PRD', '개발 중', 'QA', '완료'].forEach(g => statusCounts[g] = 0);
+    epics.forEach(e => {
+      const g = groupOf(e.status);
+      if (statusCounts[g] !== undefined) statusCounts[g]++;
+    });
+    const max = Math.max(...Object.values(statusCounts), 1);
+    const developers = [...new Set(epics.map(e => e.developers).filter(Boolean))].join(' · ');
+    const dimmed = state.selectedPart !== 'all' && state.selectedPart !== part;
+    const bars = Object.entries(statusCounts).map(([k, v]) =>
+      '<div class="part-bar"><span class="part-bar-label">' + k + '</span><div class="part-bar-track"><div class="part-bar-fill" style="width:' + (v/max)*100 + '%"></div></div><span class="part-bar-num">' + v + '</span></div>'
+    ).join('');
+    return '<div class="part-card ' + (dimmed ? 'dimmed' : '') + '" data-part="' + part + '">' +
+      '<div class="part-name"><em>' + part + '</em></div>' +
+      '<div class="part-count">EPICS · ' + epics.length + '</div>' +
+      '<div class="part-bars">' + bars + '</div>' +
+      '<div class="part-developers">' + (escapeHtml(developers) || '—') + '</div></div>';
+  }).join('');
+}
+
+function renderFlow(epics) {
+  const cols = ['대기', '기획/PRD', '개발 중', 'QA', '완료'];
+  return cols.map(col => {
+    const items = epics.filter(e => groupOf(e.status) === col);
+    const cards = items.map(e =>
+      '<div class="flow-card" data-part="' + e.partNorm + '" title="' + escapeHtml(e.summary) + '">' +
+      '<div class="fc-title">' + escapeHtml(e.summary) + '</div>' +
+      '<div class="fc-meta"><span class="fc-key">' +
+      (e.url ? '<a href="' + escapeHtml(e.url) + '" target="_blank">' + escapeHtml(e.key) + '</a>' : escapeHtml(e.key)) +
+      '</span><span>' + escapeHtml(e.developers || '?') + '</span></div></div>'
+    ).join('');
+    return '<div class="flow-col"><div class="flow-head"><span class="name">' + col + '</span><span class="num">' + items.length + '</span></div>' +
+      '<div class="flow-body">' + (cards || '<div style="font-size:11px;color:var(--gray);font-family:var(--mono);padding:8px 4px;">— 없음</div>') + '</div></div>';
+  }).join('');
+}
+
+function renderMatrix(epics) {
+  const priorities = [...new Set(epics.map(e => e.priority).filter(Boolean))];
+  if (priorities.length === 0) return '<table class="matrix"><tbody><tr><td style="padding:24px;color:var(--gray);font-family:var(--mono);font-size:11px">우선순위 데이터 없음</td></tr></tbody></table>';
+  const counts = {};
+  priorities.forEach(p => {
+    counts[p] = {};
+    PARTS.forEach(part => counts[p][part] = 0);
+  });
+  epics.forEach(e => {
+    if (counts[e.priority] && counts[e.priority][e.partNorm] !== undefined) {
+      counts[e.priority][e.partNorm]++;
+    }
+  });
+  let maxCell = 0;
+  priorities.forEach(p => PARTS.forEach(part => {
+    if (counts[p][part] > maxCell) maxCell = counts[p][part];
+  }));
+  let html = '<table class="matrix"><thead><tr><th>PRIORITY</th>';
+  PARTS.forEach(p => html += '<th>' + p + '</th>');
+  html += '<th>TOTAL</th></tr></thead><tbody>';
+  const colTotals = {};
+  PARTS.forEach(p => colTotals[p] = 0);
+  priorities.forEach(prio => {
+    html += '<tr><td>' + escapeHtml(prio) + '</td>';
+    let rowTotal = 0;
+    PARTS.forEach(part => {
+      const v = counts[prio][part];
+      rowTotal += v;
+      colTotals[part] += v;
+      const opacity = maxCell > 0 ? (v / maxCell) * 0.4 : 0;
+      html += '<td class="cell"><div class="heat" style="opacity:' + opacity + '"></div><span>' + (v || '') + '</span></td>';
+    });
+    html += '<td class="cell" style="background:var(--paper-2)"><span>' + rowTotal + '</span></td></tr>';
+  });
+  html += '<tr class="total"><td>TOTAL</td>';
+  let grand = 0;
+  PARTS.forEach(p => { html += '<td>' + colTotals[p] + '</td>'; grand += colTotals[p]; });
+  html += '<td>' + grand + '</td></tr></tbody></table>';
+  return html;
+}
+
+function renderRawView(data) {
+  const headers = data.headers.filter(h => h);
+  const rowsHtml = data.items.slice(0, 200).map(r =>
+    '<tr>' + headers.map(h => '<td>' + escapeHtml(String(r[h] || '').slice(0, 80)) + '</td>').join('') + '</tr>'
+  ).join('');
+  return '<section><div class="section-title"><span class="section-num">01</span><h2>시트 원본 데이터</h2>' +
+    '<span class="desc">— ' + data.items.length + '행 · 상위 200행 표시 · Jira 스타일이 아닌 시트는 표 형태로 표시</span></div>' +
+    '<div class="raw-wrap"><table class="raw-table"><thead><tr>' +
+    headers.map(h => '<th>' + escapeHtml(h) + '</th>').join('') +
+    '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div></section>';
+}
+
+function bindJiraInteractions() {
+  document.querySelectorAll('.chip[data-part]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      state.selectedPart = chip.dataset.part;
+      renderAll();
+    });
+  });
+  document.querySelectorAll('.part-card[data-part]').forEach(card => {
+    card.addEventListener('click', () => {
+      state.selectedPart = state.selectedPart === card.dataset.part ? 'all' : card.dataset.part;
+      renderAll();
+    });
+  });
+}
+
+function init() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) document.getElementById('urlInput').value = saved;
+
+  document.getElementById('connectBtn').addEventListener('click', connectAndLoadList);
+  document.getElementById('urlInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') connectAndLoadList();
+  });
+  document.getElementById('sheetSelect').addEventListener('change', (e) => loadSheet(e.target.value));
+  document.getElementById('refreshBtn').addEventListener('click', async () => {
+    if (!state.apiUrl) return;
+    setNotice('탭 목록 새로고침 중...', 'loading');
+    try {
+      const result = await callApi('list');
+      state.sheets = result.sheets;
+      renderSheetSelect();
+      setNotice('');
+      if (state.currentSheet) {
+        if (state.sheets.some(s => s.name === state.currentSheet)) {
+          await loadSheet(state.currentSheet);
+        } else if (state.sheets.length > 0) {
+          await loadSheet(state.sheets[0].name);
+        }
+      }
+    } catch (err) {
+      setNotice('새로고침 실패: ' + escapeHtml(err.message), 'error');
+    }
+  });
+  document.getElementById('setupToggle').addEventListener('click', () => {
+    const panel = document.getElementById('setupPanel');
+    panel.classList.toggle('collapsed');
+    document.getElementById('setupToggle').textContent = panel.classList.contains('collapsed') ? '펴기' : '접기';
+  });
+
+  if (saved) {
+    state.apiUrl = saved;
+    connectAndLoadList();
+  } else {
+    setNotice('상단 패널에서 Apps Script URL을 입력해주세요. 최초 1회 설정 후 URL이 저장되어 다음부터는 자동 연결됩니다.', 'empty');
+  }
+}
+
+init();
+})();
+</script>
+</body>
+</html>
